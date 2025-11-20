@@ -422,7 +422,7 @@ var reportData = claimsList
 - **Email:** ST10456109@imconnect.edu.za
 - **GitHub:** Musa Janda
 - **Video Demo:** https://youtu.be/pQOLY68tt5Q 
-<img width="894" height="123" alt="image" src="https://github.com/user-attachments/assets/cfe0cc7a-4834-4382-a2fb-afdbc68017ad" />
+
 
 
 ## Acknowledgments
