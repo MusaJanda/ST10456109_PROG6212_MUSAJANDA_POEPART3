@@ -225,7 +225,7 @@ AcademicManager (1) ─── (*) Claim (approved)
    - **HR:** hr@cmcs.com / Hr@123
    - **Programmw Coordinator:** Pc@cmcs.com / Pc@123
    - **Academic Manager:** Am@cmcs.com / Am@123
-   - **Lecturer:** RadebeM21@gmail.com / RadebeM@123
+   - **Lecturer:** Jele@gmail.com / Jele@123
 
 ## Usage Guide
 
@@ -421,7 +421,9 @@ var reportData = claimsList
 ## Contact
 - **Email:** ST10456109@imconnect.edu.za
 - **GitHub:** Musa Janda
-- **Video Demo:** [YouTube link - unlisted]
+- **Video Demo:** https://youtu.be/pQOLY68tt5Q 
+<img width="894" height="123" alt="image" src="https://github.com/user-attachments/assets/cfe0cc7a-4834-4382-a2fb-afdbc68017ad" />
+
 
 ## Acknowledgments
 - The Independent Institute of Education
