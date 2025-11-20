@@ -1,0 +1,132 @@
+﻿@model CMCS.ViewModels.ReportViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-file-earmark-bar-graph"></i> Reports</h1>
+        <a asp-action="@(Model.UserRole == "HR" ? "HRDashboard" : "Index")" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Report Type Selection -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0"><i class="bi bi-gear"></i> Report Options</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <label class="form-label">Report Type</label>
+                    <div class="btn-group w-100" role="group">
+                        @if (User.IsInRole("HR"))
+                        {
+                            <a asp-action="Reports" asp-route-reportType="users"
+                               class="btn @(Model.ReportType == "users" ? "btn-primary" : "btn-outline-primary")">
+                                User Report
+                            </a>
+                            <a asp-action="Reports" asp-route-reportType="payroll"
+                               class="btn @(Model.ReportType == "payroll" ? "btn-primary" : "btn-outline-primary")">
+                                Payroll
+                            </a>
+                            <a asp-action="Reports" asp-route-reportType="financial"
+                               class="btn @(Model.ReportType == "financial" ? "btn-primary" : "btn-outline-primary")">
+                                Financial
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-action="Reports" asp-route-reportType="claims"
+                               class="btn @(Model.ReportType == "claims" ? "btn-primary" : "btn-outline-primary")">
+                                Claims Report
+                            </a>
+                        }
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Download Format</label>
+                    <div class="btn-group w-100" role="group">
+                        <a asp-action="DownloadReport" asp-route-reportType="@Model.ReportType" asp-route-format="pdf"
+                           class="btn btn-success">
+                            <i class="bi bi-file-pdf"></i> Download PDF
+                        </a>
+                        <a asp-action="DownloadReport" asp-route-reportType="@Model.ReportType" asp-route-format="excel"
+                           class="btn btn-success">
+                            <i class="bi bi-file-spreadsheet"></i> Download Excel
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Report Content -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">
+                @if (Model.UserRole == "HR")
+                {
+                    @(Model.ReportType switch
+                    {
+                        "users" => "User Management Report",
+                        "payroll" => "Payroll Report",
+                        "financial" => "Financial Report",
+                        _ => "Summary Report"
+                    })
+                                }
+                else
+                {
+                    <text>Claims Report</text>
+                }
+            </h5>
+        </div>
+        <div class="card-body">
+            <!-- Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3 text-center">
+                    <div class="border rounded p-3">
+                        <h3 class="text-primary">@Model.TotalUsers</h3>
+                        <p class="mb-0">Total Users</p>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="border rounded p-3">
+                        <h3 class="text-success">@Model.ActiveUsers</h3>
+                        <p class="mb-0">Active Users</p>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="border rounded p-3">
+                        <h3 class="text-warning">@Model.TotalClaims</h3>
+                        <p class="mb-0">Total Claims</p>
+                    </div>
+                </div>
+                <div class="col-md-3 text-center">
+                    <div class="border rounded p-3">
+                        <h3 class="text-info">R @Model.TotalClaimAmount.ToString("F2")</h3>
+                        <p class="mb-0">Total Amount</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Report Data -->
+            @if (Model.ReportType == "users" && Model.UserRole == "HR")
+            {
+                <partial name="_UserReportPartial" model="Model.Users" />
+            }
+            else if (Model.Claims.Any())
+            {
+                <partial name="_ClaimsReportPartial" model="Model.Claims" />
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox display-1 text-muted"></i>
+                    <h5 class="text-muted mt-3">No data available for this report</h5>
+                </div>
+            }
+        </div>
+    </div>
+</div>

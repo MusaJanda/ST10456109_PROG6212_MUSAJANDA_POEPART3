@@ -1,0 +1,173 @@
+﻿@model CMCS.ViewModels.HRClaimsViewModel
+@{
+    ViewData["Title"] = "HR Claims Management";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-cash-coin"></i> HR Claims Management</h1>
+        <div>
+            <a asp-action="Reports" class="btn btn-info">
+                <i class="bi bi-graph-up"></i> Reports
+            </a>
+            <a asp-action="HRDashboard" class="btn btn-secondary ms-2">
+                <i class="bi bi-people"></i> User Management
+            </a>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-warning">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Payment</h5>
+                    <h2>@Model.ApprovedClaims.Count(c => c.PaymentStatus == PaymentStatus.Unpaid)</h2>
+                    <small>Total: R @Model.TotalPendingAmount.ToString("F2")</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success">
+                <div class="card-body">
+                    <h5 class="card-title">Paid Claims</h5>
+                    <h2>@Model.PaidClaims.Count</h2>
+                    <small>Total: R @Model.TotalPaidAmount.ToString("F2")</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-info">
+                <div class="card-body">
+                    <h5 class="card-title">Processing</h5>
+                    <h2>@Model.ApprovedClaims.Count(c => c.PaymentStatus == PaymentStatus.Processing)</h2>
+                    <small>In progress payments</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-primary">
+                <div class="card-body">
+                    <h5 class="card-title">Total Approved</h5>
+                    <h2>@Model.ApprovedClaims.Count</h2>
+                    <small>All approved claims</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Payment Claims -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+            <h5 class="card-title mb-0"><i class="bi bi-clock-history"></i> Claims Pending Payment</h5>
+            <span class="badge bg-light text-dark">@Model.ApprovedClaims.Count(c => c.PaymentStatus == PaymentStatus.Unpaid) claims</span>
+        </div>
+        <div class="card-body">
+            @if (Model.ApprovedClaims.Any(c => c.PaymentStatus == PaymentStatus.Unpaid))
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Lecturer</th>
+                                <th>Claim Date</th>
+                                <th>Hours</th>
+                                <th>Rate</th>
+                                <th>Amount</th>
+                                <th>Approved Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var claim in Model.ApprovedClaims.Where(c => c.PaymentStatus == PaymentStatus.Unpaid))
+                            {
+                                <tr>
+                                    <td><strong>#@claim.ClaimId</strong></td>
+                                    <td>@claim.Lecturer.FirstName @claim.Lecturer.LastName</td>
+                                    <td>@claim.ClaimDate.ToString("dd MMM yyyy")</td>
+                                    <td>@claim.HoursWorked</td>
+                                    <td>R @claim.HourlyRate.ToString("F2")</td>
+                                    <td><span class="badge bg-success">R @claim.TotalAmount.ToString("F2")</span></td>
+                                    <td>@claim.ManagerApprovalDate?.ToString("dd MMM yyyy")</td>
+                                    <td>
+                                        <div class="btn-group">
+                                            <form asp-action="MarkAsPaid" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@claim.ClaimId" />
+                                                <button type="submit" class="btn btn-success btn-sm"
+                                                        onclick="return confirm('Mark claim #@claim.ClaimId as paid?')">
+                                                    <i class="bi bi-check-circle"></i> Mark Paid
+                                                </button>
+                                            </form>
+                                            <form asp-action="MarkAsProcessing" method="post" class="d-inline">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@claim.ClaimId" />
+                                                <button type="submit" class="btn btn-info btn-sm">
+                                                    <i class="bi bi-gear"></i> Processing
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="bi bi-check-circle display-4 text-success"></i>
+                    <h5 class="text-success mt-3">All claims are paid!</h5>
+                    <p class="text-muted">No pending payments at this time.</p>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Recently Paid Claims -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h5 class="card-title mb-0"><i class="bi bi-check-circle"></i> Recently Paid Claims</h5>
+        </div>
+        <div class="card-body">
+            @if (Model.PaidClaims.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Lecturer</th>
+                                <th>Amount</th>
+                                <th>Payment Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var claim in Model.PaidClaims)
+                            {
+                                <tr>
+                                    <td>#@claim.ClaimId</td>
+                                    <td>@claim.Lecturer.FirstName @claim.Lecturer.LastName</td>
+                                    <td><strong>R @claim.TotalAmount.ToString("F2")</strong></td>
+                                    <td>@claim.PaymentDate?.ToString("dd MMM yyyy HH:mm")</td>
+                                    <td><span class="badge bg-success">Paid</span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-4">
+                    <i class="bi bi-cash-coin display-4 text-muted"></i>
+                    <h5 class="text-muted mt-3">No paid claims yet</h5>
+                    <p class="text-muted">Claims marked as paid will appear here.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

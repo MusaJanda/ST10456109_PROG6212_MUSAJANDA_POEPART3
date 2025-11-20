@@ -1,0 +1,209 @@
+﻿@model CMCS.ViewModels.CreateClaimViewModel
+@{
+    ViewData["Title"] = "Create Claim";
+    var lecturerName = ViewBag.LecturerName as string;
+    var hourlyRate = ViewBag.HourlyRate as decimal?;
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2 class="mb-0"><i class="bi bi-plus-circle"></i> Create New Claim</h2>
+        </div>
+        <div class="card-body">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger">
+                    <h5>Please fix the following errors:</h5>
+                    <ul>
+                        @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                        {
+                            <li>@error.ErrorMessage</li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <!-- PART 3: Display lecturer info (auto-populated from HR data) -->
+            <div class="alert alert-info">
+                <h5><i class="bi bi-person-badge"></i> Lecturer Information</h5>
+                <strong>Name:</strong> @lecturerName<br />
+                <strong>Hourly Rate:</strong> R @hourlyRate?.ToString("F2")<br />
+                <small class="text-muted">This information is managed by HR and cannot be changed here.</small>
+            </div>
+
+            <form asp-action="Create" method="post" enctype="multipart/form-data" id="claimForm">
+                @Html.AntiForgeryToken()
+
+                <!-- Hidden field for hourly rate (auto-populated) -->
+                <input type="hidden" asp-for="HourlyRate" value="@hourlyRate" />
+
+                <!-- Claim Date -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="ClaimDate" class="form-label fw-bold">Claim Date *</label>
+                            <input asp-for="ClaimDate"
+                                   class="form-control"
+                                   type="date"
+                                   required
+                                   max="@DateTime.Today.ToString("yyyy-MM-dd")"
+                                   style="padding: 0.75rem; font-size: 1rem;" />
+                            <span asp-validation-for="ClaimDate" class="text-danger small"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group mb-3">
+                            <label asp-for="HoursWorked" class="form-label fw-bold">Hours Worked *</label>
+                            <input asp-for="HoursWorked"
+                                   class="form-control"
+                                   id="hoursWorked"
+                                   min="0.5"
+                                   max="300"
+                                   step="0.5"
+                                   required
+                                   oninput="calculateTotal()" />
+                            <span asp-validation-for="HoursWorked" class="text-danger small"></span>
+                            <small class="form-text text-muted">Maximum 300 hours per month</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PART 3: Auto-calculation display -->
+                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h5 class="card-title">Payment Calculation</h5>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <strong>Hourly Rate:</strong>
+                                        <p class="mb-0">R <span id="displayRate">@hourlyRate?.ToString("F2")</span></p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Hours Worked:</strong>
+                                        <p class="mb-0"><span id="displayHours">0.00</span> hours</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <strong>Total Amount:</strong>
+                                        <h4 class="text-success mb-0">R <span id="totalAmount">0.00</span></h4>
+                                    </div>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="bi bi-calculator"></i> Calculated automatically: Hours × Rate
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Description" class="form-label fw-bold">Description *</label>
+                    <textarea asp-for="Description"
+                              class="form-control"
+                              rows="4"
+                              placeholder="Describe the work performed, modules taught, or activities completed..."
+                              required></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Department" class="form-label fw-bold">Department *</label>
+                    <input asp-for="Department" class="form-control" required />
+                    <span asp-validation-for="Department" class="text-danger small"></span>
+                </div>
+
+                <!-- File Upload Section -->
+                <div class="form-group mb-4">
+                    <label class="form-label fw-bold">Supporting Documents (Optional)</label>
+                    <div class="border rounded p-3 bg-light">
+                        <div class="mb-3">
+                            <input type="file"
+                                   class="form-control"
+                                   id="documents"
+                                   name="documents"
+                                   multiple
+                                   accept=".pdf,.docx,.xlsx,.jpg,.jpeg,.png" />
+                            <div class="form-text">
+                                <i class="bi bi-info-circle"></i>
+                                Maximum file size: 10MB per file. Allowed types: PDF, Word, Excel, Images
+                            </div>
+                        </div>
+                        <div id="fileList" class="mt-2">
+                            <small class="text-muted">No files selected</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success btn-lg me-2" id="submitBtn">
+                        <i class="bi bi-check-circle"></i> Submit Claim
+                    </button>
+                    <a asp-action="Index" asp-controller="Dashboard" class="btn btn-secondary btn-lg">
+                        <i class="bi bi-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+        // PART 3: Auto-calculation function
+        function calculateTotal() {
+            const hourlyRate = parseFloat(@(hourlyRate ?? 0));
+            const hours = parseFloat(document.getElementById('hoursWorked').value) || 0;
+            const total = hours * hourlyRate;
+
+            document.getElementById('displayHours').textContent = hours.toFixed(2);
+            document.getElementById('totalAmount').textContent = total.toFixed(2);
+
+            // PART 3: Validation - warn if exceeding reasonable limits
+            if (hours > 300) {
+                document.getElementById('hoursWorked').classList.add('is-invalid');
+                alert('Warning: You are entering more than 300 hours. Monthly limit is 300 hours.');
+            } else {
+                document.getElementById('hoursWorked').classList.remove('is-invalid');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            calculateTotal();
+
+            // Set today's date as default if empty
+            const dateInput = document.querySelector('#ClaimDate');
+            if (!dateInput.value) {
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+            }
+
+            // File display logic
+            document.getElementById('documents').addEventListener('change', function() {
+                const fileList = document.getElementById('fileList');
+                if (this.files.length > 0) {
+                    let html = '<div class="selected-files"><strong>Selected files:</strong><ul class="mt-2 mb-0">';
+                    for (let i = 0; i < this.files.length; i++) {
+                        html += `<li><i class="bi bi-file-earmark"></i> ${this.files[i].name} (${formatFileSize(this.files[i].size)})</li>`;
+                    }
+                    html += '</ul></div>';
+                    fileList.innerHTML = html;
+                } else {
+                    fileList.innerHTML = '<small class="text-muted">No files selected</small>';
+                }
+            });
+        });
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+    </script>
+}

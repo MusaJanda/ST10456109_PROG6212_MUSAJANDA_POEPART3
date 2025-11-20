@@ -1,0 +1,156 @@
+﻿@{
+    ViewData["Title"] = "Reports Dashboard";
+    var userRole = ViewBag.UserRole as string;
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1><i class="bi bi-file-earmark-bar-graph"></i> Reports Dashboard</h1>
+        <a asp-action="Index" asp-controller="Dashboard" class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Role-Specific Reports -->
+    @if (userRole == "HR")
+    {
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-white bg-primary">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people display-4"></i>
+                        <h5 class="card-title mt-3">User Management Report</h5>
+                        <p class="card-text">Overview of all system users</p>
+                        <a asp-action="DownloadReport" asp-controller="Dashboard" asp-route-reportType="users" asp-route-format="pdf"
+                           class="btn btn-light">
+                            <i class="bi bi-download"></i> Download PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-success">
+                    <div class="card-body text-center">
+                        <i class="bi bi-cash-coin display-4"></i>
+                        <h5 class="card-title mt-3">Payroll Report</h5>
+                        <p class="card-text">Lecturer payments and claims</p>
+                        <a asp-action="DownloadReport" asp-controller="Dashboard" asp-route-reportType="payroll" asp-route-format="pdf"
+                           class="btn btn-light">
+                            <i class="bi bi-download"></i> Download PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-info">
+                    <div class="card-body text-center">
+                        <i class="bi bi-graph-up display-4"></i>
+                        <h5 class="card-title mt-3">Financial Report</h5>
+                        <p class="card-text">Financial summary and analytics</p>
+                        <a asp-action="DownloadReport" asp-controller="Dashboard" asp-route-reportType="financial" asp-route-format="pdf"
+                           class="btn btn-light">
+                            <i class="bi bi-download"></i> Download PDF
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (userRole == "Lecturer")
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card text-white bg-warning">
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-text display-4"></i>
+                        <h5 class="card-title mt-3">My Claims Report</h5>
+                        <p class="card-text">Download a report of all your claims</p>
+                        <a asp-action="MyClaimsReport" asp-controller="Reports" class="btn btn-light">
+                            <i class="bi bi-download"></i> Download My Claims Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (userRole == "ProgrammeCoordinator")
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card text-white bg-info">
+                    <div class="card-body text-center">
+                        <i class="bi bi-clipboard-check display-4"></i>
+                        <h5 class="card-title mt-3">Coordinator Report</h5>
+                        <p class="card-text">Claims reviewed by you</p>
+                        <a asp-action="CoordinatorReport" asp-controller="Reports" class="btn btn-light">
+                            <i class="bi bi-download"></i> Download Coordinator Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (userRole == "AcademicManager")
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card text-white bg-success">
+                    <div class="card-body text-center">
+                        <i class="bi bi-award display-4"></i>
+                        <h5 class="card-title mt-3">Manager Report</h5>
+                        <p class="card-text">Claims approved by you</p>
+                        <a asp-action="ManagerReport" asp-controller="Reports" class="btn btn-light">
+                            <i class="bi bi-download"></i> Download Manager Report
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- Common Reports for All Users -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0"><i class="bi bi-download"></i> Quick Downloads</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if (userRole == "HR")
+                        {
+                            <div class="col-md-3 text-center">
+                                <a asp-action="DownloadReport" asp-controller="Dashboard" asp-route-reportType="users" asp-route-format="excel"
+                                   class="btn btn-outline-primary w-100">
+                                    <i class="bi bi-file-spreadsheet"></i>
+                                    <div class="mt-2">Users Excel</div>
+                                </a>
+                            </div>
+                            <div class="col-md-3 text-center">
+                                <a asp-action="DownloadReport" asp-controller="Dashboard" asp-route-reportType="payroll" asp-route-format="excel"
+                                   class="btn btn-outline-success w-100">
+                                    <i class="bi bi-file-spreadsheet"></i>
+                                    <div class="mt-2">Payroll Excel</div>
+                                </a>
+                            </div>
+                        }
+                        <div class="col-md-3 text-center">
+                            <a asp-action="DownloadReport" asp-controller="Dashboard" asp-route-reportType="claims" asp-route-format="pdf"
+                               class="btn btn-outline-info w-100">
+                                <i class="bi bi-file-pdf"></i>
+                                <div class="mt-2">Claims PDF</div>
+                            </a>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <a asp-action="DownloadReport" asp-controller="Dashboard" asp-route-reportType="claims" asp-route-format="excel"
+                               class="btn btn-outline-info w-100">
+                                <i class="bi bi-file-spreadsheet"></i>
+                                <div class="mt-2">Claims Excel</div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
